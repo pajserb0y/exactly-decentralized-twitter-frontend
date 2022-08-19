@@ -8,10 +8,13 @@ import Header from "./components/Header"
 import { NotificationProvider } from "web3uikit"
 import { BrowserRouter } from "react-router-dom"
 
+const APP_ID = "xgEHRf1FbWGNOWgMdk1GZjg0mfYkTbEFNkZP4iyz"
+const APP_URL = "https://z9qet1rzrbed.usemoralis.com:2053/server"
+
 const root = ReactDOM.createRoot(document.getElementById("root"))
 root.render(
     <React.StrictMode>
-        <MoralisProvider initializeOnMount={false}>
+        <MoralisProvider appId={APP_ID} serverUrl={APP_URL}>
             <NotificationProvider>
                 <BrowserRouter>
                     <Header />

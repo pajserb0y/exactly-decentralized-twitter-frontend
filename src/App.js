@@ -1,13 +1,19 @@
 import "./App.css"
 import { useMoralis } from "react-moralis"
+import { Moralis } from "moralis"
 import contractAddresses from "./contractData/contractAddresses.json"
 import { useEffect } from "react"
 import { Routes, Route } from "react-router-dom"
 import Profile from "./components/Profile"
 import { Spinner } from "react-bootstrap"
 
+const APP_ID = "xgEHRf1FbWGNOWgMdk1GZjg0mfYkTbEFNkZP4iyz"
+const APP_URL = "https://z9qet1rzrbed.usemoralis.com:2053/server"
+const MASTER_KEY = "3nJewJj4F3VVyTj8uJM1VmITBU2f6woHqZXftkKC"
+
 function App() {
-    const { chainId: chainIdHex, isWeb3Enabled } = useMoralis()
+    const { chainId: chainIdHex, isWeb3Enabled, isInitialized } = useMoralis()
+    console.log(`Initialized ${isInitialized}`)
     const chainId = parseInt(chainIdHex)
     const exactlyAddress = chainId in contractAddresses ? contractAddresses[chainId][0] : null
 
