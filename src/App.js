@@ -3,6 +3,7 @@ import { useMoralis } from "react-moralis"
 import contractAddresses from "./contractData/contractAddresses.json"
 import { Routes, Route } from "react-router-dom"
 import Profile from "./components/Profile"
+import Home from "./components/Home"
 import { Spinner } from "react-bootstrap"
 import { create as ipfsHttpClient } from "ipfs-http-client"
 
@@ -34,7 +35,10 @@ function App() {
                                     <Profile exactlyAddress={exactlyAddress} client={client} />
                                 }
                             />
-                            {/* <Route path="/" element={<Home />} /> */}
+                            <Route
+                                path="/"
+                                element={<Home exactlyAddress={exactlyAddress} client={client} />}
+                            />
                         </Routes>
                     ) : (
                         <div>Contract not detected</div>
