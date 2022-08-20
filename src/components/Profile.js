@@ -8,7 +8,7 @@ const Profile = ({ exactlyAddress, client }) => {
     const [profile, setProfile] = useState("")
     const [username, setUsername] = useState("")
     const [image, setImage] = useState(null)
-    const [loading, setLoading] = useState(false)
+    const [loading, setLoading] = useState(true)
 
     const [nfts, setNfts] = useState([])
 
@@ -161,6 +161,7 @@ const Profile = ({ exactlyAddress, client }) => {
     })
 
     const handleSuccess = async function (tx) {
+        console.log("USAAOOOOOOOOO")
         await tx.wait(1) //this really waits for transaction to be confirmed
         handleNewNotificationTx("Success! New profile set.")
     }
