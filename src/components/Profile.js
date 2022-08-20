@@ -127,9 +127,9 @@ const Profile = ({ exactlyAddress, client }) => {
                     handleNewNotificationTx("Mint failed! Error on blockchain.")
                     console.log(error)
                 },
-                onSuccess: () => handleSuccess,
+                onSuccess: (tx) => handleSuccess(tx),
             })
-            loadMyNfts()
+            // loadMyNfts()
         } catch (error) {
             handleNewNotificationTx("Mint failed! Error on IPFS.")
             console.log("Ipfs tokenUri upload error: ", error)
@@ -151,7 +151,7 @@ const Profile = ({ exactlyAddress, client }) => {
             onError: (error) => {
                 handleNewNotificationTx("Setting profile failed! Error on blockchain.")
             },
-            onSuccess: () => handleSuccess,
+            onSuccess: (tx) => handleSuccess(tx),
         })
         getProfile(nfts)
     }
@@ -161,9 +161,9 @@ const Profile = ({ exactlyAddress, client }) => {
     })
 
     const handleSuccess = async function (tx) {
-        console.log("USAAOOOOOOOOO")
         await tx.wait(1) //this really waits for transaction to be confirmed
         handleNewNotificationTx("Success! New profile set.")
+        loadMyNfts()
     }
 
     const handleNewNotificationTx = function (message) {

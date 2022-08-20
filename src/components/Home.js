@@ -131,7 +131,7 @@ const Home = ({ exactlyAddress, client }) => {
                     handleNewNotificationTx("Upload post failed! Error on blockchain.")
                     console.log(error)
                 },
-                onSuccess: () => handleSuccessUpload,
+                onSuccess: (tx) => handleSuccessUpload(tx),
             })
             loadPosts()
         } catch (error) {
@@ -149,13 +149,13 @@ const Home = ({ exactlyAddress, client }) => {
                 params: {
                     _postId: postId,
                 },
-                msgValue: Moralis.Units.ETH("0.1"),
+                msgValue: Moralis.Units.ETH("0.01"),
             },
             onError: (error) => {
                 handleNewNotificationTx("Tiping failed! Error on blockchain.")
                 console.log(error)
             },
-            onSuccess: () => handleSuccessTip,
+            onSuccess: (tx) => handleSuccessTip(tx),
         })
     }
 
@@ -237,7 +237,7 @@ const Home = ({ exactlyAddress, client }) => {
                                         className="mr-2"
                                         width="30"
                                         height="30"
-                                        src={post.author.avatar}
+                                        src={post.author.image}
                                     />
                                     <small className="ms-2 me-auto d-inline">
                                         {post.author.username}
@@ -251,12 +251,13 @@ const Home = ({ exactlyAddress, client }) => {
                                 </Card.Body>
                                 <Card.Footer className="list-group-item">
                                     <div className="d-inline mt-auto float-start">
-                                        Tip Amount: {Moralis.Units.ETH(post.tipAmount)} ETH
+                                        Tip Amount: {post.tipAmount.toString()} ETH
                                     </div>
-                                    {account === post.author.address || !hasProfile ? null : (
+                                    {account.toLowerCase() === post.author.address.toLowerCase() ||
+                                    !hasProfile ? null : (
                                         <div className="d-inline float-end">
                                             <Button
-                                                onClick={() => tipPost(post)}
+                                                onClick={() => tipPost(post.id)}
                                                 className="px-0 py-0 font-size-16"
                                                 variant="link"
                                                 size="md"
