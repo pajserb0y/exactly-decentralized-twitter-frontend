@@ -1,133 +1,103 @@
-import React from "react"
 import { useMoralis, useWeb3Contract } from "react-moralis"
-import { Moralis } from "moralis"
 import { useState, useEffect } from "react"
 import { useNotification } from "web3uikit"
 import abi from "../contractData/abi.json"
-import { Row, Form, Button, Card, ListGroup, Col } from "react-bootstrap"
+import { Row, Form, Button, Card, Col } from "react-bootstrap"
 
-const Profile = ({ exactlyAddress }) => {
+const Profile = ({ exactlyAddress, client }) => {
     const [profile, setProfile] = useState("")
     const [username, setUsername] = useState("")
     const [image, setImage] = useState(null)
     const [loading, setLoading] = useState(false)
-    let tokenURI = ""
-    let tokenId = ""
+
     const [nfts, setNfts] = useState([])
 
     const { account } = useMoralis()
 
     const dispatch = useNotification()
 
-    const {
-        runContractFunction: mint,
-        isLoading,
-        isFetching,
-    } = useWeb3Contract({
-        abi: abi,
-        contractAddress: exactlyAddress,
-        functionName: "mint",
-        params: {
-            _tokenURI: tokenURI,
-        },
-    })
-
-    const { runContractFunction: getMyNfts } = useWeb3Contract({
-        abi: abi,
-        contractAddress: exactlyAddress,
-        functionName: "getMyNfts",
-        params: {},
-    })
-
-    const { runContractFunction: getTokenURI } = useWeb3Contract({
-        abi: abi,
-        contractAddress: exactlyAddress,
-        functionName: "tokenURI",
-        params: {
-            tokenId: tokenId,
-        },
-    })
-
-    const { runContractFunction: getTokenIdForProfile } = useWeb3Contract({
-        abi: abi,
-        contractAddress: exactlyAddress,
-        functionName: "getTokenIdForProfile",
-        params: {
-            profile: account,
-        },
-    })
-
-    const { runContractFunction: setNewProfile } = useWeb3Contract({
-        abi: abi,
-        contractAddress: exactlyAddress,
-        functionName: "setProfile",
-        params: {
-            _tokenId: tokenId,
-        },
-    })
+    const { runContractFunction } = useWeb3Contract()
 
     const loadMyNfts = async () => {
-        const nftIds = await getMyNfts({
+        const nftIds = await runContractFunction({
+            params: {
+                abi: abi,
+                contractAddress: exactlyAddress,
+                functionName: "getMyNfts",
+                params: {},
+            },
             onError: (error) => {
                 handleNewNotificationTx("Fetching NFTs failed! Error on blockchain.")
             },
         })
-
-        const nfts = await Promise.all(
+        let nfts = await Promise.all(
             nftIds.map(async (id) => {
-                tokenId = id
+                let tokenId = id.toString()
 
-                const uri = await getTokenURI({
+                const uri = await runContractFunction({
+                    params: {
+                        abi: abi,
+                        contractAddress: exactlyAddress,
+                        functionName: "tokenURI",
+                        params: {
+                            tokenId: tokenId,
+                        },
+                    },
                     onError: (error) => {
                         handleNewNotificationTx("Fetching NFTs failed! Error on blockchain.")
                     },
                 })
-
-                const response = await fetch(uri)
+                const requestURL = uri.replace(
+                    "https://ipfs.infura.io/ipfs/",
+                    "https://ipfs.io/ipfs/"
+                )
+                const response = await fetch(requestURL)
                 const metadata = await response.json()
 
                 return {
                     id: tokenId,
                     username: metadata.username,
-                    image: metadata.image,
+                    image: metadata.image.replace(
+                        "https://ipfs.infura.io/ipfs/",
+                        "https://ipfs.io/ipfs/"
+                    ),
                 }
             })
         )
+
         setNfts(nfts)
-        getProfile()
+        getProfile(nfts)
     }
 
-    const getProfile = async () => {
-        const tokenId = await getTokenIdForProfile({
+    const getProfile = async (nfts) => {
+        const tokenId = await runContractFunction({
+            params: {
+                abi: abi,
+                contractAddress: exactlyAddress,
+                functionName: "getTokenIdForProfile",
+                params: {
+                    profile: account,
+                },
+            },
             onError: (error) => {
                 handleNewNotificationTx("Fetching profile failed! Error on blockchain.")
             },
         })
-        const profile = nfts.find((nft) => nft.id.toString() === tokenId.toString())
+
+        const profile = nfts.find((nft) => nft.id == tokenId.toString())
+
         setProfile(profile)
         setLoading(false)
     }
 
-    const APP_ID = "xgEHRf1FbWGNOWgMdk1GZjg0mfYkTbEFNkZP4iyz"
-    const APP_URL = "https://z9qet1rzrbed.usemoralis.com:2053/server"
-    const MASTER_KEY = "3nJewJj4F3VVyTj8uJM1VmITBU2f6woHqZXftkKC"
-
     const uploadImageToIpfs = async (event) => {
         event.preventDefault()
         const selectedImage = event.target.files[0]
-        console.log(event.target.files[0])
-        await Moralis.start({ serverUrl: APP_URL, appId: APP_ID, masterKey: MASTER_KEY })
 
         if (selectedImage !== undefined) {
             try {
-                const file = new Moralis.File("file.json", {
-                    base64: btoa(JSON.stringify(selectedImage)),
-                })
-                // await file.saveIPFS()
-                await file.saveIPFS({ useMasterKey: true })
-
-                setImage(file.url)
-                console.log(`Images's IPFS url: ${file.ipfs()} and IPFS hash ${file.hash()}`)
+                const result = await client.add(selectedImage)
+                setImage(`https://ipfs.io/ipfs/${result.path}`)
             } catch (error) {
                 handleNewNotificationTx("Upload image failed! Error on IPFS.")
                 console.log("Ipsf image upload error: ", error)
@@ -141,16 +111,21 @@ const Profile = ({ exactlyAddress }) => {
             return
         }
         try {
-            const file = new Moralis.File("file.json", {
-                base64: btoa(JSON.stringify({ image, username })),
-            })
-            // await file.saveIPFS()
-            await file.saveIPFS({ useMasterKey: true })
+            const result = await client.add(JSON.stringify({ image, username }))
             setLoading(true)
-            tokenURI = file.ipfs()
-            await mint({
+            let tokenURI = `https://ipfs.io/ipfs/${result.path}`
+            await runContractFunction({
+                params: {
+                    abi: abi,
+                    contractAddress: exactlyAddress,
+                    functionName: "mint",
+                    params: {
+                        _tokenURI: tokenURI,
+                    },
+                },
                 onError: (error) => {
                     handleNewNotificationTx("Mint failed! Error on blockchain.")
+                    console.log(error)
                 },
                 onSuccess: () => handleSuccess,
             })
@@ -163,18 +138,26 @@ const Profile = ({ exactlyAddress }) => {
 
     const switchProfile = async (nft) => {
         setLoading(true)
-        tokenId = nft.id
-        await setNewProfile({
+        let tokenId = nft.id
+        await runContractFunction({
+            params: {
+                abi: abi,
+                contractAddress: exactlyAddress,
+                functionName: "setProfile",
+                params: {
+                    _tokenId: tokenId,
+                },
+            },
             onError: (error) => {
                 handleNewNotificationTx("Setting profile failed! Error on blockchain.")
             },
             onSuccess: () => handleSuccess,
         })
-        getProfile()
+        getProfile(nfts)
     }
 
     useEffect(() => {
-        if (!nfts) loadMyNfts()
+        if (!nfts.length) loadMyNfts()
     })
 
     const handleSuccess = async function (tx) {
@@ -202,9 +185,11 @@ const Profile = ({ exactlyAddress }) => {
     return (
         <div className="mt-4 text-center">
             {profile ? (
-                <div className="mb-3">
-                    <h3 className="mb-3">{profile.username}</h3>
-                    <img className="mb-3" style={{ width: "400px" }} src={profile.image} />
+                <div className="flex flex-col mb-3">
+                    <h3 className=" mb-3">{profile.username}</h3>
+                    <div className=" flex justify-center mb-3">
+                        <img style={{ width: "300px" }} src={profile.image} />
+                    </div>
                 </div>
             ) : (
                 <h4 className="mb-4">No NFT profile, please create one...</h4>

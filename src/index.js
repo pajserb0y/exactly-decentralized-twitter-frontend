@@ -7,6 +7,7 @@ import { MoralisProvider } from "react-moralis"
 import Header from "./components/Header"
 import { NotificationProvider } from "web3uikit"
 import { BrowserRouter } from "react-router-dom"
+import "bootstrap/dist/css/bootstrap.css"
 
 const APP_ID = "xgEHRf1FbWGNOWgMdk1GZjg0mfYkTbEFNkZP4iyz"
 const APP_URL = "https://z9qet1rzrbed.usemoralis.com:2053/server"
