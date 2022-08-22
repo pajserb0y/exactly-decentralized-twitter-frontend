@@ -96,13 +96,10 @@ const Home = ({ exactlyAddress, client }) => {
                     tipAmount: postRaw.tipAmount,
                     author,
                 }
-                console.log(post)
 
                 return post
             })
         )
-
-        console.log(posts)
 
         posts = posts.sort((a, b) => b.tipAmount - a.tipAmount) //od onog sa najvise do onog sa najmanje tipva
         setPosts(posts)
@@ -133,7 +130,6 @@ const Home = ({ exactlyAddress, client }) => {
                 },
                 onSuccess: (tx) => handleSuccessUpload(tx),
             })
-            loadPosts()
         } catch (error) {
             handleNewNotificationTx("Upload post failed! Error on IPFS.")
             console.log("Ipfs post upload error: ", error)
@@ -164,12 +160,14 @@ const Home = ({ exactlyAddress, client }) => {
     })
 
     const handleSuccessUpload = async function (tx) {
-        await tx.wait(1) //this really waits for transaction to be confirmed
+        console.log(await tx.wait(1)) //this really waits for transaction to be confirmed
         handleNewNotificationTx("Success! New post uploaded.")
+        loadPosts()
     }
     const handleSuccessTip = async function (tx) {
         await tx.wait(1) //this really waits for transaction to be confirmed
         handleNewNotificationTx("Success! Post is tipped.")
+        loadPosts()
     }
 
     const handleNewNotificationTx = function (message) {
@@ -251,7 +249,8 @@ const Home = ({ exactlyAddress, client }) => {
                                 </Card.Body>
                                 <Card.Footer className="list-group-item">
                                     <div className="d-inline mt-auto float-start">
-                                        Tip Amount: {post.tipAmount.toString()} ETH
+                                        Tip Amount:{" "}
+                                        {Moralis.Units.FromWei(post.tipAmount.toString())} ETH
                                     </div>
                                     {account.toLowerCase() === post.author.address.toLowerCase() ||
                                     !hasProfile ? null : (
@@ -262,7 +261,7 @@ const Home = ({ exactlyAddress, client }) => {
                                                 variant="link"
                                                 size="md"
                                             >
-                                                Tip for 0.1 ETH
+                                                Tip for 0.01 ETH
                                             </Button>
                                         </div>
                                     )}
