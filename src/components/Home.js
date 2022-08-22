@@ -25,9 +25,7 @@ const Home = ({ exactlyAddress, client }) => {
                 functionName: "balanceOf",
                 params: { owner: account },
             },
-            onError: (error) => {
-                console.log(error)
-            },
+            onError: (error) => {},
         })
         setHasProfile(balance.toString() > 0)
         let result = await runContractFunction({
@@ -126,13 +124,11 @@ const Home = ({ exactlyAddress, client }) => {
                 },
                 onError: (error) => {
                     handleNewNotificationTx("Upload post failed! Error on blockchain.")
-                    console.log(error)
                 },
                 onSuccess: (tx) => handleSuccessUpload(tx),
             })
         } catch (error) {
             handleNewNotificationTx("Upload post failed! Error on IPFS.")
-            console.log("Ipfs post upload error: ", error)
         }
     }
 
@@ -149,7 +145,6 @@ const Home = ({ exactlyAddress, client }) => {
             },
             onError: (error) => {
                 handleNewNotificationTx("Tiping failed! Error on blockchain.")
-                console.log(error)
             },
             onSuccess: (tx) => handleSuccessTip(tx),
         })
@@ -160,7 +155,7 @@ const Home = ({ exactlyAddress, client }) => {
     })
 
     const handleSuccessUpload = async function (tx) {
-        console.log(await tx.wait(1)) //this really waits for transaction to be confirmed
+        await tx.wait(1) //this really waits for transaction to be confirmed
         handleNewNotificationTx("Success! New post uploaded.")
         loadPosts()
     }

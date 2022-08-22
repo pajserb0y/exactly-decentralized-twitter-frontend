@@ -100,7 +100,6 @@ const Profile = ({ exactlyAddress, client }) => {
                 setImage(`https://ipfs.io/ipfs/${result.path}`)
             } catch (error) {
                 handleNewNotificationTx("Upload image failed! Error on IPFS.")
-                console.log("Ipsf image upload error: ", error)
             }
         }
     }
@@ -125,14 +124,12 @@ const Profile = ({ exactlyAddress, client }) => {
                 },
                 onError: (error) => {
                     handleNewNotificationTx("Mint failed! Error on blockchain.")
-                    console.log(error)
                 },
                 onSuccess: (tx) => handleSuccess(tx),
             })
             // loadMyNfts()
         } catch (error) {
             handleNewNotificationTx("Mint failed! Error on IPFS.")
-            console.log("Ipfs tokenUri upload error: ", error)
         }
     }
 
